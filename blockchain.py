@@ -260,7 +260,7 @@ def add_health_transaction():
     if not all (key in json for key in transaction_keys):
         return "Some elements of transaction are misssing" , 400
     record_data = json[recordData]
-    index =  blockchain.add_criminal_transactions( record_data['name'],
+    index =  blockchain.add_health_transactions( record_data['name'],
                                     record_data['UID'],
                                     record_data['fingerprint'],
                                     record_data['retinaScan'],
