@@ -17,6 +17,7 @@ class Blockchain:
         self.transactions = []
         self.create_block(proof = 1, previous_hash = '0')
         self.nodes = set()
+        self.transaction_types = set()
          
     def create_block(self, proof, previous_hash):
         block = {
@@ -39,10 +40,8 @@ class Blockchain:
     def proof_of_work(self, previous_proof):
         new_proof = 1 
         check_proof = False
-        #target 4 leading zeros
         while check_proof is False:
             hash_operation = hashlib.sha256(str(new_proof**2 - previous_proof**2).encode()).hexdigest()  
-            #operation passed need to be non symmetrical like subtraction but not addition
             if hash_operation[:4] == '0000':
                 check_proof = True
             else:
@@ -69,38 +68,34 @@ class Blockchain:
             block_index +=1 
         return True  
     
-    def add_transactions(self, sender, reciever, amount):
-        self.transactions.append({ "sender": sender,
-                                   "reciever":reciever,
-                                   "amount": amount
-                                   })
+    def add_employment_transactions(self, employeeName, employeeUID, employerName, employerUID, startDate, endDate):
+        self.transactions.append({
+									"recordType": "employment",
+									"recordData": {
+										"employeeName": employeeName,
+										"employeeUID": employeeUID,
+										"employerName": employerName,
+										"employerUID": employerUID,
+										"startDate": startDate,
+										"endDate": endDate,
+									},
+								})
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
-
-#add_node funciton adds nodes with netloc     
+    
     def add_node(self, address):
         parsed_url = urlparse(address)
         self.nodes.add(parsed_url.netloc)
 
-    """ add_node function something like this 
-    
-    #address = 'http://127.0.0.1:5000/'
-    #parsed_url = urlparse(address)
-    #parsed_url
-    #Out[4]: ParseResult(scheme='http', netloc='127.0.0.1:5000', path='/', params='', query='', fragment='')
-    #parsed_url.netloc
-    #Out[5]: '127.0.0.1:5000'
-    
-    """
-
-#replace_chain applies consensus protocol and replaces each node's chain with longest chain in network 
+    def add_transaction_type(self, transaction_type):
+    	self.transaction_type.add(transaction_type)
+ 
     def replace_chain(self):
         network = self.nodes
         longest_chain = None
         max_length  = len(self.chain)
         for  node in network:
             response = requests.get(f'http://{node}/get_chain')  
-            # f string funcntion pyhton 3.6+ syntax use variables {node} inside string
             if response.status_code == 200:
                 length = response.json()['length']
                 chain  = response.json()['chain']
@@ -108,24 +103,59 @@ class Blockchain:
                     max_length = length
                     longest_chain = chain
         
-        if longest_chain:  #i.e if longest chain is not None
+        if longest_chain: 
             self.chain = longest_chain
             return True
         return False
-        
-        
-#Part 2 - Mining our Blockchain  
 
-# Creating a Web app        
+    # Added by Kshitiz
+    def sync_transactions(self):
+        network = self.nodes
+        record_type = None
+        record_data = None
+        transactions_in_node = None
+        for node in network:
+            response = requests.get(f'http://{node}/get_transactions/')
+            if response.status_code == 200:
+                transactions_in_node = response.json()['transactions']
+                if transactions_in_node:
+                    for transaction in transactions_in_node:
+                        record_type = transaction['record_type']
+                        record_data = transaction['record_data']
+                        if record_type and record_data:
+                        	if record_type == "criminal":
+                        		pass
+                        	if record_type == "employment":
+                        		self.add_transaction(record_data['employeeName'],
+                        			record_data['employeeUID'],
+                        			record_data['employerName'],
+                        			record_data['employerUID'],
+                        			record_data['startDate'],
+                        			record_data['endDate']
+                        			)
+                        	if record_type == "health":
+                        		pass
+        
+        if transactions_in_node:
+            return True
+        return False
+    
+            
+    def empty_transactions(self):
+        network = self.nodes
+        for node in network:
+            response = requests.get(f'http://{node}/empty_transactions/')
+            if response.status_code != 200:
+                return False
+        return True
+        
+             
 app = Flask(__name__)
 
-#Creating a address for the node on Port 5000
 node_address =  str(uuid4()).replace('-','')
 
-#creating a blockchain
 blockchain = Blockchain()
 
-#This route triggers mining of a block
 @app.route('/mine_block' , methods = ['GET'])
 def mine_block():
     previous_block = blockchain.get_previous_block()
@@ -133,7 +163,13 @@ def mine_block():
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
     blockchain.add_transactions(sender = node_address, reciever = 'Prakhar',amount = 10)
-    block = blockchain.create_block(proof,previous_hash)
+    # Added by Kshitiz
+    blockchain.sync_transactions()
+    
+    block = blockchain.create_block(proof, previous_hash)
+    
+    # Added by Kshitiz
+    blockchain.empty_transactions()
     response = {
                 'message': "Congratulations, You just mined a block!!",
                 'index': block['index'],
@@ -144,7 +180,6 @@ def mine_block():
                 }
     return jsonify(response), 200
 
-#getting the full blockchain displayed 
 @app.route('/get_chain', methods = ['GET'])
 def get_chain():
     response = {
@@ -153,7 +188,6 @@ def get_chain():
                 }
     return jsonify(response), 200
 
-#checking whether the blockchain is valid or whether some block has been corrupted and hence whole chain after that block is corrupted 
 @app.route('/is_valid', methods = ['GET'])
 def is_valid():
     is_valid = blockchain.is_chain_valid(blockchain.chain)
@@ -163,13 +197,11 @@ def is_valid():
         response = {'message': "Nope... So, we got issues.. blockchain not valid !!!"}
     return jsonify(response), 200
 
-#Adding a new transaction to the blockchain using POST request
 @app.route('/add_transaction', methods = ['POST'])
 def add_transaction():
     json = request.get_json()
     transaction_keys = ['sender','reciever','amount']
     if not all (key in json for key in transaction_keys):
-    #if not all keys in transacation_key list are not in are json then 
         return "Some elements of transaction are misssing" , 400
     index =  blockchain.add_transactions(json['sender'], json['reciever'], json['amount'])
     response = {'message': f'The transaction will be added to block {index}'}
@@ -178,8 +210,6 @@ def add_transaction():
 
 #Part 3 - Decentralising our Blockchain
 
-#Connecting  new nodes 
-#for doing this add node in json file already containing existing nodes and post  this json file using postman 
 @app.route('/connect_node', methods = ['POST'])
 def connect_node():
     json = request.get_json()
@@ -195,7 +225,6 @@ def connect_node():
                 }
     return jsonify(response), 201
 
-#Replacing the chain by longest chain if needed :GET request
 @app.route('/replace_chain', methods = ['GET'])
 def replace_chain():
     is_chain_replaced = blockchain.replace_chain()
@@ -210,7 +239,24 @@ def replace_chain():
     return jsonify(response), 200
 
 
-#running the app 
+# Code added by Kshitiz
+@app.route('/get_transactions/', methods=['GET'])
+def get_transactions():
+    """
+        Method to get transactions currently not addded in the block from specific node.
+    """
+    response = {
+        'number_of_transactions': len(blockchain.transactions),
+        'transactions': blockchain.transactions,
+    }
+    return jsonify(response), 200
+
+@app.route('/empty_transactions/', methods=['GET'])
+def empty_transactions():
+    blockchain.transactions = []
+    response = {'message': 'Transactions were successfully emptied'}
+    return jsonify(response), 200
+
 app.run(host = '0.0.0.0', port = 5000)
 
 
