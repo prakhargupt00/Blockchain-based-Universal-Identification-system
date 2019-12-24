@@ -1,4 +1,4 @@
-#Module 1,2 - Create a blockchain and Creating a Cryptocurrency based on it
+
 
 import datetime 
 import hashlib
@@ -8,7 +8,6 @@ import requests
 from uuid import uuid4
 from urllib.parse import urlparse 
 
-#Part 1 - Building the blockchain for Cryptocurrency 
 
 class Blockchain:
     
@@ -31,8 +30,6 @@ class Blockchain:
         self.chain.append(block)
         return block 
     
-# We need to modify our genral purpose blockchain into one for crpytocurrency by 
-# adding the transactions field 
     
     def  get_previous_block(self):
         return self.chain[-1]
@@ -82,6 +79,37 @@ class Blockchain:
 								})
         previous_block = self.get_previous_block()
         return previous_block['index'] + 1
+
+    def add_criminal_transactions(self, accusedUID, accusedName, offenceDetails, policeStationUID, stateHead, status, IPCRule):
+        self.transactions.append({ "recordType": "criminal",
+                                    "recordData" :{
+                                       "accusedUID": accusedUID,
+                                       "accusedName": accusedName,
+                                       "offenceDetails": offenceDetails,
+                                       "policeStationUID": policeStationUID,
+                                       "stateHead": stateHead,
+                                       "status": status,
+                                       "IPCRule": IPCRule
+                                       }
+                                    })
+        previous_block = self.get_previous_block()
+        return previous_block['index'] + 1
+
+    def add_health_transactions(self, name, UID, fingerprint, retinaScan, vaccinations, medicines, majorAccidents):
+        self.transactions.append({  "recordType" : "health",
+                                    "recordData": {
+                                        "name":name,
+                                        "UID": UID,
+                                        "fingerprint": fingerprint,
+                                        "retinaScan": retinaScan,
+                                        "vaccinations": vaccinations,
+                                        "medicines": medicines,
+                                        "majorAccidents": majorAccidents
+                                        }
+                                    })
+        previous_block = self.get_previous_block()
+        return previous_block['index'] + 1
+
     
     def add_node(self, address):
         parsed_url = urlparse(address)
@@ -89,7 +117,7 @@ class Blockchain:
 
     def add_transaction_type(self, transaction_type):
     	self.transaction_type.add(transaction_type)
- 
+
     def replace_chain(self):
         network = self.nodes
         longest_chain = None
@@ -126,7 +154,7 @@ class Blockchain:
                         	if record_type == "criminal":
                         		pass
                         	if record_type == "employment":
-                        		self.add_transaction(record_data['employeeName'],
+                        		self.add_employment_transaction(record_data['employeeName'],
                         			record_data['employeeUID'],
                         			record_data['employerName'],
                         			record_data['employerUID'],
@@ -135,7 +163,6 @@ class Blockchain:
                         			)
                         	if record_type == "health":
                         		pass
-        
         if transactions_in_node:
             return True
         return False
@@ -149,7 +176,6 @@ class Blockchain:
                 return False
         return True
         
-             
 app = Flask(__name__)
 
 node_address =  str(uuid4()).replace('-','')
@@ -208,12 +234,10 @@ def add_transaction():
     return jsonify(response), 201
 
 
-#Part 3 - Decentralising our Blockchain
-
 @app.route('/connect_node', methods = ['POST'])
 def connect_node():
     json = request.get_json()
-    nodes = json.get('nodes') #nodes is  a list
+    nodes = json.get('nodes') 
     if nodes is None:
         return "No nodes in network", 400
     for node in nodes:
