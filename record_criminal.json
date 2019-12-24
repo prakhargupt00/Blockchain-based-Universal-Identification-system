@@ -1,0 +1,15 @@
+{
+    "recordType": "criminal",
+    "recordData" :{
+        "accusedUID":"",
+        "accusedName":"",
+        "offenceDetails":"",
+        "policeStationUID":"",
+        "stateHead":"",
+        "status":"",
+        "IPCRule":""
+    }    
+    
+    
+}
+

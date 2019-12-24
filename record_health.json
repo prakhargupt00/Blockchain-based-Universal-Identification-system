@@ -1,0 +1,13 @@
+{
+    "recordType" : "health",
+    "recordData": {
+        "name":"",
+        "UID": "",
+        "fingerprint":"",
+        "retinaScan":"",
+        "vaccinations":[],
+        "medicines":[],
+        "majorAccidents":[]
+    }
+}
+
