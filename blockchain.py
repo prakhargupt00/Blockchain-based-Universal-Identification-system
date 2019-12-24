@@ -152,7 +152,14 @@ class Blockchain:
                         record_data = transaction['record_data']
                         if record_type and record_data:
                         	if record_type == "criminal":
-                        		pass
+                        		self.add_criminal_transactions(record_data['accusedName'],
+                                    record_data['accusedUID'],
+                                    record_data['offenceDetails'],
+                                    record_data['policeStationUID'],
+                                    record_data['status'],
+                                    record_data['IPCRule'],
+                                    record_data['stateHead']
+                                    )
                         	if record_type == "employment":
                         		self.add_employment_transaction(record_data['employeeName'],
                         			record_data['employeeUID'],
@@ -162,7 +169,13 @@ class Blockchain:
                         			record_data['endDate']
                         			)
                         	if record_type == "health":
-                        		pass
+                        		self.add_health_transactions(record_data['name'],
+                                    record_data['UID'],
+                                    record_data['fingerprint'],
+                                    record_data['retinaScan'],
+                                    record_data['vaccinations'],
+                                    record_data['medicines']
+                                    )
         if transactions_in_node:
             return True
         return False
