@@ -148,8 +148,8 @@ class Blockchain:
                 transactions_in_node = response.json()['transactions']
                 if transactions_in_node:
                     for transaction in transactions_in_node:
-                        record_type = transaction['record_type']
-                        record_data = transaction['record_data']
+                        record_type = transaction['recordType']
+                        record_data = transaction['recordData']
                         if record_type and record_data:
                         	if record_type == "criminal":
                         		self.add_criminal_transactions(record_data['accusedName'],
@@ -201,7 +201,7 @@ def mine_block():
     previous_proof = previous_block['proof']
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
-    blockchain.add_transactions(sender = node_address, reciever = 'Prakhar',amount = 10)
+    #blockchain.add_transactions(sender = node_address, reciever = 'Prakhar',amount = 10)
     # Added by Kshitiz
     blockchain.sync_transactions()
     
@@ -236,14 +236,38 @@ def is_valid():
         response = {'message': "Nope... So, we got issues.. blockchain not valid !!!"}
     return jsonify(response), 200
 
-@app.route('/add_transaction', methods = ['POST'])
-def add_transaction():
+@app.route('/add_criminal_transaction', methods = ['POST'])
+def add_criminal_transaction():
     json = request.get_json()
-    transaction_keys = ['sender','reciever','amount']
+    transaction_keys = ['recordType','recordData']
     if not all (key in json for key in transaction_keys):
         return "Some elements of transaction are misssing" , 400
-    index =  blockchain.add_transactions(json['sender'], json['reciever'], json['amount'])
-    response = {'message': f'The transaction will be added to block {index}'}
+    record_data = json[recordData]
+    index =  blockchain.add_criminal_transactions( record_data['accusedName'],
+                                    record_data['accusedUID'],
+                                    record_data['offenceDetails'],
+                                    record_data['policeStationUID'],
+                                    record_data['status'],
+                                    record_data['IPCRule'],
+                                    record_data['stateHead'])
+    response = {'message': f'The criminal transaction will be added to block {index}'}
+    return jsonify(response), 201
+
+@app.route('/add_health_transaction', methods = ['POST'])
+def add_health_transaction():
+    json = request.get_json()
+    transaction_keys = ['recordType','recordData']
+    if not all (key in json for key in transaction_keys):
+        return "Some elements of transaction are misssing" , 400
+    record_data = json[recordData]
+    index =  blockchain.add_criminal_transactions( record_data['name'],
+                                    record_data['UID'],
+                                    record_data['fingerprint'],
+                                    record_data['retinaScan'],
+                                    record_data['vaccinations'],
+                                    record_data['medicines']
+                                    )
+    response = {'message': f'The health transaction will be added to block {index}'}
     return jsonify(response), 201
 
 
