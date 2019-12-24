@@ -195,13 +195,22 @@ node_address =  str(uuid4()).replace('-','')
 
 blockchain = Blockchain()
 
+@app.route('/home/' , methods = ['GET'])
+def home():
+	response = "<h1>Welcome to Blockchain based Unique Identification System</h1>";
+	res2 = "<h3>You can use following functionalities: </h3>"
+	func = "<ul><li>mine_block</li><li>get_chain</li><li>is_valid</li><li>add_employment_transaction</li><li>add_health_transaction</li>"
+	fucn2 = "<li>add_criminal_transaction</li><li>connect_node</li><li>replace_chain</li><li>get_transactions</li><li>empty_transactions</li></ul>"
+	return response+res2+func+fucn2
+
 @app.route('/mine_block' , methods = ['GET'])
 def mine_block():
     previous_block = blockchain.get_previous_block()
     previous_proof = previous_block['proof']
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
-    #blockchain.add_transactions(sender = node_address, reciever = 'Prakhar',amount = 10)
+    # blockchain.add_transactions(sender = node_address, reciever = 'Prakhar',amount = 10)
+
     # Added by Kshitiz
     blockchain.sync_transactions()
     
@@ -236,6 +245,23 @@ def is_valid():
         response = {'message': "Nope... So, we got issues.. blockchain not valid !!!"}
     return jsonify(response), 200
 
+
+@app.route('/add_employment_transaction', methods = ['POST'])
+def add_employment_transaction():
+	json = request.get_json()
+    transaction_keys = ['recordType','recordData']
+    if not all (key in json for key in transaction_keys):
+        return "Some elements of transaction are misssing" , 400
+	record_data = json['recordData']
+    index =  blockchain.add_employment_transaction(record_data['employeeName'],
+                        			record_data['employeeUID'],
+                        			record_data['employerName'],
+                        			record_data['employerUID'],
+                        			record_data['startDate'],
+                        			record_data['endDate']
+                        			)
+    response = {'message': f'The employment transaction will be added to block {index}'}
+
 @app.route('/add_criminal_transaction', methods = ['POST'])
 def add_criminal_transaction():
     json = request.get_json()
@@ -260,7 +286,7 @@ def add_health_transaction():
     if not all (key in json for key in transaction_keys):
         return "Some elements of transaction are misssing" , 400
     record_data = json[recordData]
-    index =  blockchain.add_criminal_transactions( record_data['name'],
+    index =  blockchain.add_health_transactions( record_data['name'],
                                     record_data['UID'],
                                     record_data['fingerprint'],
                                     record_data['retinaScan'],
