@@ -1,13 +1,13 @@
 {
     "recordType": "criminal",
     "recordData" :{
-        "accusedUID":"",
-        "accusedName":"",
-        "offenceDetails":"",
-        "policeStationUID":"",
-        "stateHead":"",
-        "status":"",
-        "IPCRule":""
+        "accusedUID":"12",
+        "accusedName":"Anuj Gaur",
+        "offenceDetails":"Murder",
+        "policeStationUID":"Mushi Pulia",
+        "stateHead":"Naruto",
+        "status":"guilty",
+        "IPCRule":"234"
     }    
     
     

@@ -1,11 +1,11 @@
 {
 	"recordType": "employment",
 	"recordData": {
-		"employeeName": "sampleName",
-		"employeeUID": 123,
-		"employerName": "sampleName",
-		"employerUID": 123,
-		"startDate": 12-12-12,
-		"endDate": 12-12-12,
+		"employeeName": "khitix",
+		"employeeUID": "13",
+		"employerName": "Google",
+		"employerUID": "01",
+		"startDate": "24-12-19",
+		"endDate": "24-12-19"
 	}
 }
